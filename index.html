@@ -411,9 +411,9 @@ function playTune(which) {
         b.start(t); b.stop(t + 1.5);
       }
     });
-    $$(".tune-state").forEach(s => s.textContent = "♪ playing… fingerprint QR-7712");
+    $$(".tune-state").forEach(s => s.textContent = s.dataset.state === which ? "♪ playing… fingerprint QR-7712" : "");
     tuneTimer = setTimeout(() => {
-      $$(".tune-state").forEach(s => s.textContent = "♪ played — fingerprint QR-7712. Same ID on both uploads.");
+      $$(".tune-state").forEach(s => s.textContent = s.dataset.state === which ? "♪ played — fingerprint QR-7712. Same ID on both uploads." : "");
     }, MELODY.length * 420 + 600);
   } catch (e) { toast("Audio is blocked in this browser — but the metadata is the evidence: both uploads share audio ID QR-7712."); }
 }
