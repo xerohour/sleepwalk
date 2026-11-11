@@ -17,18 +17,35 @@ Live at **https://xerohour.github.io/sleepwalk/**
   2. Do players find the webring without Search Assist?
   3. What did 20 pages cost? (Ledger is in the in-game Case File.)
 
+## Vertical slice — Case 2: "The Girl Who Drew the Stars"
+
+Live at **https://xerohour.github.io/sleepwalk/?case=2**
+
+- 1 new zone (Teentopia), 1 case, 20 pages
+- Client: `lunar_latte`, 15. Her webcomic "Comet Cat" is being reposted
+  as someone else's work by `starfactory` — a Hollowell Media Group
+  content farm.
+- New tests: multi-zone search, visual evidence (zoom-to-reveal hidden
+  signature), pattern discovery via a second victim, and the corporation
+  as a report answer.
+- Case switcher lives in the in-game Case File; progress saves per case.
+  In the full game Case 2 unlocks by closing Case 1 — in the slice both
+  cases are open for playtesting. `?case=2` opens straight into Case 2.
+
 ## How it works
 
 - `index.html` — the Somnius OS: draggable windows (Browser, Mail, Notepad,
   Case File, File Report), taskbar, Start menu. Progress saves to
-  localStorage; "Reset case" in the Start menu clears it (two-step: click
-  twice within 5 seconds — no native dialog, so automated browsers can use
-  it too). `?reset=1` on the URL wipes the save before it loads, for a
-  guaranteed fresh playtest.
-- `pages.js` — the page CMS. Every page is a data object: `id, title,
-  author, zone, tags, type (stub|standard|hub), costMin, hidden, dir,
-  people, links, body`. Hidden pages are unlisted: reachable only via
-  links, never via search or the directory.
+  localStorage, one sub-state per case; "Reset case" in the Start menu
+  clears it (two-step: click twice within 5 seconds — no native dialog, so
+  automated browsers can use it too). `?reset=1` on the URL wipes the save
+  before it loads, for a guaranteed fresh playtest. `?case=2` opens
+  straight into Case 2.
+- `pages.js` / `pages2.js` — the page CMS. Every page is a data object:
+  `id, title, author, zone, tags, type (stub|standard|hub), costMin,
+  hidden, dir, people, links, body`. Hidden pages are unlisted: reachable
+  only via links, never via search or the directory. Each case also
+  registers its people, identity evidence, and mail in the same file.
 
 ## Design decisions (locked 2026-11-11)
 
