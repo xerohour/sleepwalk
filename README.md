@@ -21,7 +21,10 @@ Live at **https://xerohour.github.io/sleepwalk/**
 
 - `index.html` — the Somnius OS: draggable windows (Browser, Mail, Notepad,
   Case File, File Report), taskbar, Start menu. Progress saves to
-  localStorage; "Reset case" in the Start menu clears it.
+  localStorage; "Reset case" in the Start menu clears it (two-step: click
+  twice within 5 seconds — no native dialog, so automated browsers can use
+  it too). `?reset=1` on the URL wipes the save before it loads, for a
+  guaranteed fresh playtest.
 - `pages.js` — the page CMS. Every page is a data object: `id, title,
   author, zone, tags, type (stub|standard|hub), costMin, hidden, dir,
   people, links, body`. Hidden pages are unlisted: reachable only via
