@@ -60,7 +60,7 @@
     background-image: radial-gradient(#fff 1px, transparent 1.4px), radial-gradient(#ffe9a8 1px, transparent 1.4px), radial-gradient(#fff 1px, transparent 1.2px);
     background-size: 90px 70px, 130px 110px, 60px 90px; }
   .pg.stars a { color: #ffff66; }
-  .pg.stars .box { background: rgba(0,0,0,.45); border: 1px solid #8888ff; }
+  .pg.stars .box { background: rgba(0,0,0,.45); border: 1px solid #8888ff; color: #fff; }
   .pg.dark { background: #111; color: #c9c9c9; }
   .pg.dark a { color: #ff7777; }
   .pg.dark h1 { color: #eee; letter-spacing: 2px; }
@@ -85,7 +85,7 @@
     background-image: radial-gradient(#ff9ff3 1px, transparent 1.4px), radial-gradient(#fff 1px, transparent 1.2px);
     background-size: 110px 80px, 70px 90px; }
   .pg.teen a { color: #ff9ff3; }
-  .pg.teen .box { background: rgba(0,0,0,.45); border: 1px solid #c9f; }
+  .pg.teen .box { background: rgba(0,0,0,.45); border: 1px solid #c9f; color: #fff; }
   .pg.teen .tiny { color: #d9b3ff; }
   .pg.corp { background: #f2f2f2; color: #111; border-left: 6px solid #c00; }
   .pg.corp h1 { color: #c00; letter-spacing: 1px; }
@@ -98,7 +98,7 @@
     background-image: radial-gradient(#ff0 1px, transparent 1.4px), radial-gradient(#f0f 1px, transparent 1.2px), radial-gradient(#fff 1px, transparent 1.2px);
     background-size: 90px 70px, 130px 110px, 60px 90px; }
   .pg.gamer a { color: #ff0; }
-  .pg.gamer .box { background: rgba(0,0,0,.55); border: 2px outset #888; }
+  .pg.gamer .box { background: rgba(0,0,0,.55); border: 2px outset #888; color: #fff; }
   .pg.gamer .box.warn { background: #400; border-color: #f00; }
   .pg.gamer .tiny { color: #ccc; }
   .pg.gamer table.card td { color: #000; }
@@ -578,9 +578,12 @@ function doDecrypt() {
   state.decrypted[sel.value] = true;
   state.ev[f.evidence] = Date.now();
   save();
-  out.textContent = f.content;
-  st.textContent = "✓ Decrypted — evidence logged.";
   toast("✅ Decrypted <b>" + esc(f.title) + "</b> — evidence logged.");
+  renderDecryptor(); /* refresh the file list so this file flips to ✓ decrypted */
+  $("#decrypt-out").textContent = f.content;
+  $("#dl-status").textContent = "✓ Decrypted — evidence logged.";
+  const radio = document.querySelector('input[name=dl-file][value="' + sel.value + '"]');
+  if (radio) radio.checked = true;
   renderCaseFile();
 }
 /* The eye blinks, on a slow timer, whenever the decryptor is open. */
