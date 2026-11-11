@@ -252,6 +252,7 @@ function setCase(n) {
   const dn = document.getElementById("desk-node");
   if (dn) dn.textContent = n === 1 ? "Goodtime Valley node" : "Teentopia node";
   renderMail(); renderNotepad(); updateMailBadge();
+  document.getElementById("mail-read").innerHTML = "<i>Select a message to read it.</i>"; /* reading pane belongs to the old case */
   if (state.order.length) { const last = state.order[state.order.length - 1]; hist = state.order.slice(); histIdx = hist.length - 1; nav(last, false); }
   else bootHome();
   renderCaseFile(); renderReport();
