@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Somnius — Case 1: The Quiet Room</title>
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; overflow: hidden; font-family: Tahoma, Verdana, sans-serif; font-size: 12px; }
+  /* ---------- desktop ---------- */
+  #desktop { position: fixed; inset: 0; background:
+    radial-gradient(circle at 12% 22%, #fff 1px, transparent 1.5px),
+    radial-gradient(circle at 78% 12%, #fff 1px, transparent 1.5px),
+    radial-gradient(circle at 34% 68%, #ffe9a8 1px, transparent 1.5px),
+    radial-gradient(circle at 88% 78%, #fff 1px, transparent 1.5px),
+    radial-gradient(circle at 55% 40%, #fff 1px, transparent 1.5px),
+    linear-gradient(160deg, #0b6e6e, #084a4a 60%, #063838);
+    background-size: 340px 260px, 420px 300px, 300px 240px, 380px 280px, 260px 220px, 100% 100%;
+    user-select: none; }
+  .desk-icon { position: absolute; width: 92px; text-align: center; color: #fff; cursor: pointer; padding: 6px 2px; text-shadow: 1px 1px 2px #000; }
+  .desk-icon .glyph { font-size: 30px; line-height: 1.1; }
+  .desk-icon:hover { background: rgba(255,255,255,.18); }
+  .desk-icon .badge { position: absolute; top: 2px; right: 14px; background: #d00; color: #fff; border-radius: 9px; min-width: 16px; height: 16px; line-height: 16px; font-size: 10px; font-weight: bold; }
+  #desk-clock-note { position: absolute; right: 14px; bottom: 44px; color: rgba(255,255,255,.75); font-size: 11px; text-align: right; text-shadow: 1px 1px 2px #000; }
+  /* ---------- windows ---------- */
+  .win { position: absolute; background: #c0c0c0; border: 2px solid; border-color: #dfdfdf #404040 #404040 #dfdfdf; box-shadow: 4px 4px 0 rgba(0,0,0,.35); display: flex; flex-direction: column; min-width: 320px; }
+  .win.hidden { display: none; }
+  .win.focused { box-shadow: 5px 5px 0 rgba(0,0,0,.45); }
+  .titlebar { background: linear-gradient(90deg, #000080, #1084d0); color: #fff; font-weight: bold; padding: 4px 6px; display: flex; justify-content: space-between; align-items: center; cursor: move; flex: none; }
+  .win:not(.focused) .titlebar { background: linear-gradient(90deg, #666, #999); }
+  .titlebar .tb-btns button { margin-left: 3px; width: 20px; height: 18px; font-size: 11px; line-height: 1; cursor: pointer; }
+  .winbody { padding: 6px; overflow: auto; flex: 1; background: #c0c0c0; }
+  .winbody.white { background: #fff; }
+  button, input, select, textarea { font-family: Tahoma, Verdana, sans-serif; font-size: 12px; }
+  button { cursor: pointer; }
+  /* ---------- taskbar ---------- */
+  #taskbar { position: fixed; left: 0; right: 0; bottom: 0; height: 34px; background: #c0c0c0; border-top: 2px solid #dfdfdf; display: flex; align-items: center; gap: 4px; padding: 3px 6px; z-index: 9999; }
+  #start-btn { font-weight: bold; padding: 4px 12px; }
+  .task-btn { padding: 4px 10px; max-width: 170px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .task-btn.active { background: #a8a8a8; font-weight: bold; }
+  #tray-clock { margin-left: auto; padding: 4px 10px; border: 1px inset #fff; background: #c0c0c0; }
+  #start-menu { position: fixed; left: 4px; bottom: 36px; width: 220px; background: #c0c0c0; border: 2px solid; border-color: #dfdfdf #404040 #404040 #dfdfdf; z-index: 10000; display: none; }
+  #start-menu div { padding: 8px 10px; cursor: pointer; }
+  #start-menu div:hover { background: #000080; color: #fff; }
+  /* ---------- browser ---------- */
+  #browser-view a { color: #0000ee; }
+  #browser-view a:visited { color: #551a8b; }
+  .btoolbar { display: flex; gap: 4px; flex-wrap: wrap; align-items: center; margin-bottom: 5px; }
+  .btoolbar input[type=text] { flex: 1; min-width: 120px; padding: 3px; }
+  #addr { width: 100%; padding: 3px; margin-bottom: 5px; background: #fff; border: 1px inset #fff; color: #333; }
+  #browser-view { background: #fff; border: 1px inset #fff; min-height: 300px; padding: 0; overflow: auto; }
+  #assist-panel { display: none; background: #ffffcc; border: 1px solid #cc9; padding: 6px; margin-bottom: 5px; }
+  #assist-panel b { color: #660; }
+  .pagefoot { display: flex; gap: 6px; align-items: center; margin-top: 5px; color: #444; font-size: 11px; flex-wrap: wrap; }
+  /* ---------- in-world pages ---------- */
+  .pg { padding: 12px 14px; min-height: 280px; font-size: 13px; line-height: 1.45; }
+  .pg h1 { font-size: 20px; margin: 2px 0 8px; }
+  .pg h2 { font-size: 15px; margin: 12px 0 4px; }
+  .pg.stars { background: #20206e; color: #fff;
+    background-image: radial-gradient(#fff 1px, transparent 1.4px), radial-gradient(#ffe9a8 1px, transparent 1.4px), radial-gradient(#fff 1px, transparent 1.2px);
+    background-size: 90px 70px, 130px 110px, 60px 90px; }
+  .pg.stars a { color: #ffff66; }
+  .pg.stars .box { background: rgba(0,0,0,.45); border: 1px solid #8888ff; }
+  .pg.dark { background: #111; color: #c9c9c9; }
+  .pg.dark a { color: #ff7777; }
+  .pg.dark h1 { color: #eee; letter-spacing: 2px; }
+  .pg.quiet { background: #dfe8ff; color: #223; }
+  .pg.plain { background: #fff; color: #000; }
+  .pg.possum { background: #e8e0d0; color: #332; }
+  .pg .box { border: 1px solid #888; padding: 8px; margin: 8px 0; background: #f4f4f4; color: #000; }
+  .pg .box.warn { background: #ffe1e1; border-color: #c00; }
+  .pg .box.sad { background: #e1ecff; border-color: #36c; }
+  .pg .gb p { border-bottom: 1px dashed #999; padding: 6px 0; margin: 0; }
+  .pg.stars .gb p, .pg.dark .gb p { border-color: #666; }
+  .pg .sig { font-size: 11px; font-style: italic; opacity: .85; margin-top: 14px; }
+  .pg .tiny { font-size: 11px; color: #888; }
+  .pg.stars .tiny, .pg.dark .tiny { color: #bbb; }
+  .pg .hl { background: #ff0; color: #000; padding: 0 2px; font-weight: bold; }
+  .pg .poem { font-style: italic; margin-left: 12px; }
+  table.card { border-collapse: collapse; margin: 8px 0; background: #fff; color: #000; }
+  table.card td { border: 1px solid #999; padding: 4px 8px; }
+  .tune-btn { font-size: 13px; padding: 4px 12px; margin-top: 4px; }
+  .tune-state { color: #060; font-weight: bold; }
+  /* ---------- mail / notepad / casefile ---------- */
+  .mail-list { border: 1px inset #fff; background: #fff; margin-bottom: 6px; }
+  .mail-item { padding: 6px 8px; cursor: pointer; border-bottom: 1px solid #ddd; }
+  .mail-item:hover { background: #eef; }
+  .mail-item.unread { font-weight: bold; background: #fff8dc; }
+  .mail-item .mdate { float: right; color: #888; font-weight: normal; font-size: 11px; }
+  #mail-read { background: #fff; border: 1px inset #fff; padding: 10px; white-space: pre-wrap; min-height: 140px; }
+  #notes { width: 100%; height: 180px; }
+  .pin { background: #ffffcc; border: 1px solid #cc9; padding: 5px 7px; margin: 4px 0; }
+  .pin a { color: #00c; }
+  .ledger { border-collapse: collapse; width: 100%; background: #fff; }
+  .ledger td, .ledger th { border: 1px solid #999; padding: 3px 6px; font-size: 11px; text-align: left; }
+  .ledger th { background: #dfe8ff; }
+  .meter { height: 12px; background: #fff; border: 1px inset #fff; margin: 3px 0 8px; }
+  .meter > div { height: 100%; background: #000080; }
+  .slot { border: 1px solid #888; background: #fff; padding: 8px; margin: 8px 0; }
+  .slot label { display: block; padding: 3px 0; cursor: pointer; }
+  .slot .verdict { font-weight: bold; margin-top: 4px; }
+  .verdict.ok { color: #060; } .verdict.bad { color: #c00; }
+  #epilogue { display: none; background: #e1ecff; border: 2px solid #36c; padding: 12px; margin-top: 10px; }
+  #toast { position: fixed; right: 12px; bottom: 44px; background: #ffffcc; border: 2px solid #cc9; padding: 10px 12px; z-index: 10001; display: none; max-width: 320px; box-shadow: 3px 3px 0 rgba(0,0,0,.3); }
+  #intro { position: fixed; inset: 0; background: rgba(0,0,40,.72); z-index: 20000; display: flex; align-items: center; justify-content: center; }
+  #intro .card { background: #c0c0c0; border: 2px solid; border-color: #dfdfdf #404040 #404040 #dfdfdf; width: 520px; max-width: 92vw; padding: 0; box-shadow: 6px 6px 0 rgba(0,0,0,.4); }
+  #intro .card .body { padding: 14px 16px; background: #fff; }
+  #intro h1 { margin: 0 0 6px; font-size: 18px; }
+  .stamp { display: inline-block; border: 3px solid #060; color: #060; padding: 2px 10px; font-weight: bold; transform: rotate(-4deg); letter-spacing: 2px; }
+</style>
+</head>
+<body>
+<div id="desktop">
+  <div class="desk-icon" style="left:18px;top:16px" data-open="browser"><div class="glyph">🌐</div>Somnius<br>Browser</div>
+  <div class="desk-icon" style="left:18px;top:104px" data-open="mail"><div class="glyph">✉️</div>Mail<span class="badge" id="mail-badge" style="display:none">1</span></div>
+  <div class="desk-icon" style="left:18px;top:192px" data-open="notepad"><div class="glyph">📝</div>Notepad</div>
+  <div class="desk-icon" style="left:18px;top:280px" data-open="casefile"><div class="glyph">🗂️</div>Case File</div>
+  <div class="desk-icon" style="left:18px;top:368px" data-open="report"><div class="glyph">🔍</div>File Report</div>
+  <div id="desk-clock-note">SOMNIUS v1.0<br>Goodtime Valley node<br>November 2004</div>
+</div>
+
+<!-- Browser -->
+<div class="win" id="win-browser" style="left:130px;top:20px;width:760px;height:560px;z-index:10">
+  <div class="titlebar" data-drag="win-browser"><span>🌐 Somnius Browser — Goodtime Valley</span><span class="tb-btns"><button data-min="win-browser">_</button><button data-close="win-browser">✕</button></span></div>
+  <div class="winbody">
+    <div class="btoolbar">
+      <button id="btn-back">◀ Back</button><button id="btn-fwd">Forward ▶</button>
+      <button id="btn-dir">📁 Directory</button><button id="btn-hist">🕘 History</button>
+      <input type="text" id="search-input" placeholder="Search Somnius… (try: angelfeathers, flip-flop, memorial)">
+      <button id="btn-search">Search</button>
+    </div>
+    <div id="addr">somnius://home</div>
+    <div id="assist-panel"></div>
+    <div id="browser-view"></div>
+    <div class="pagefoot"><span id="page-meta"></span><span style="flex:1"></span><button id="btn-bookmark">☆ Bookmark</button><button id="btn-pin">📌 Pin to Notepad</button></div>
+  </div>
+</div>
+
+<!-- Mail -->
+<div class="win hidden" id="win-mail" style="left:220px;top:60px;width:640px;height:480px;z-index:11">
+  <div class="titlebar" data-drag="win-mail"><span>✉️ Somnius Mail</span><span class="tb-btns"><button data-min="win-mail">_</button><button data-close="win-mail">✕</button></span></div>
+  <div class="winbody">
+    <div class="mail-list" id="mail-list"></div>
+    <div id="mail-read"><i>Select a message to read it.</i></div>
+  </div>
+</div>
+
+<!-- Notepad -->
+<div class="win hidden" id="win-notepad" style="left:300px;top:90px;width:520px;height:460px;z-index:12">
+  <div class="titlebar" data-drag="win-notepad"><span>📝 Notepad — case notes</span><span class="tb-btns"><button data-min="win-notepad">_</button><button data-close="win-notepad">✕</button></span></div>
+  <div class="winbody">
+    <textarea id="notes" placeholder="Your notes. The game never writes here for you — except Tier 3, when Somnius Assist pins a URL because you are stuck."></textarea>
+    <h3 style="margin:8px 0 4px">Pinned pages</h3>
+    <div id="pins"><i>Nothing pinned yet. Use “📌 Pin to Notepad” in the browser.</i></div>
+  </div>
+</div>
+
+<!-- Case File -->
+<div class="win hidden" id="win-casefile" style="left:180px;top:40px;width:680px;height:560px;z-index:13">
+  <div class="titlebar" data-drag="win-casefile"><span>🗂️ Case File — Case 1: The Quiet Room</span><span class="tb-btns"><button data-min="win-casefile">_</button><button data-close="win-casefile">✕</button></span></div>
+  <div class="winbody white" id="casefile-body"></div>
+</div>
+
+<!-- Report -->
+<div class="win hidden" id="win-report" style="left:260px;top:70px;width:620px;height:540px;z-index:14">
+  <div class="titlebar" data-drag="win-report"><span>🔍 File Report — report your findings to the client</span><span class="tb-btns"><button data-min="win-report">_</button><button data-close="win-report">✕</button></span></div>
+  <div class="winbody white" id="report-body"></div>
+</div>
+
+<div id="taskbar">
+  <button id="start-btn">❖ Start</button>
+  <span id="task-btns" style="display:flex;gap:4px"></span>
+  <span id="tray-clock"></span>
+</div>
+<div id="start-menu">
+  <div data-open="browser">🌐 Somnius Browser</div>
+  <div data-open="mail">✉️ Mail</div>
+  <div data-open="notepad">📝 Notepad</div>
+  <div data-open="casefile">🗂️ Case File</div>
+  <div data-open="report">🔍 File Report</div>
+  <div id="start-reset">↺ Reset case (clear save)</div>
+</div>
+<div id="toast"></div>
+
+<div id="intro" style="display:none">
+  <div class="card">
+    <div class="titlebar"><span>SOMNIUS — Case 1: The Quiet Room</span></div>
+    <div class="body">
+      <h1>You are a private investigator.</h1>
+      <p>Not a moderator. Not an employee. Someone people hire when the platform won't help them.</p>
+      <p>Your client is <b>marbles_4ever</b>, 19. Her older sister Dani died eight months ago. Dani's memorial page — <b>angelfeathers</b> — has vanished from Goodtime Valley, and nobody will say why.</p>
+      <p>Your only tools are the ones on this desktop: a <b>browser</b>, <b>mail</b>, a <b>notepad</b>, and your ability to notice when two stories don't match.</p>
+      <p>Read the case email. Then go looking. When you know the truth, <b>File Report</b> and tell her.</p>
+      <p><button id="intro-go" style="padding:6px 16px;font-weight:bold">Open the case email →</button></p>
+      <p style="color:#666;font-size:11px">Vertical slice: 1 zone, 1 case, 20 pages. Progress saves in this browser. “Reset case” in the Start menu clears it.</p>
+    </div>
+  </div>
+</div>
+
+<script src="pages.js"></script>
+<script>
+"use strict";
+/* ================= state ================= */
+const LS_KEY = "sleepwalk-case1";
+const PAGES = window.SLEEPWALK_PAGES;
+const PEOPLE = window.SLEEPWALK_PEOPLE;
+const EVIDENCE = window.SLEEPWALK_EVIDENCE;
+const byId = id => PAGES.find(p => p.id === id);
+function freshState() {
+  return { visited: {}, order: [], enc: {}, ev: {}, pins: [], notes: "",
+    hints: 0, hintLog: [], idle: 0, resolved: false, attempts: 0,
+    mail: ["m-case", "m-welcome"], read: {}, bookmarks: {}, seenIntro: false,
+    started: Date.now() };
+}
+let state = freshState();
+try { const raw = localStorage.getItem(LS_KEY); if (raw) state = Object.assign(freshState(), JSON.parse(raw)); } catch (e) {}
+function save() { try { localStorage.setItem(LS_KEY, JSON.stringify(state)); } catch (e) {} }
+const $ = s => document.querySelector(s);
+const $$ = s => Array.from(document.querySelectorAll(s));
+const esc = s => s.replace(/&/g, "&amp;").replace(/</g, "&lt;");
+function toast(msg) { const t = $("#toast"); t.innerHTML = msg; t.style.display = "block"; setTimeout(() => t.style.display = "none", 6000); }
+
+/* ================= window manager ================= */
+const WINS = { browser: ["win-browser", "🌐 Browser"], mail: ["win-mail", "✉️ Mail"], notepad: ["win-notepad", "📝 Notepad"], casefile: ["win-casefile", "🗂️ Case File"], report: ["win-report", "🔍 File Report"] };
+let zTop = 20;
+function openWin(name) {
+  const [id, label] = WINS[name];
+  const el = document.getElementById(id);
+  el.classList.remove("hidden"); el.style.zIndex = ++zTop; el.classList.add("focused");
+  $$(".win").forEach(w => { if (w.id !== id) w.classList.remove("focused"); });
+  renderTaskbar();
+  if (name === "casefile") renderCaseFile();
+  if (name === "report") renderReport();
+  if (name === "mail") renderMail();
+  if (name === "notepad") renderNotepad();
+}
+function closeWin(name) { document.getElementById(WINS[name][0]).classList.add("hidden"); renderTaskbar(); }
+function renderTaskbar() {
+  const bar = $("#task-btns"); bar.innerHTML = "";
+  Object.keys(WINS).forEach(name => {
+    const el = document.getElementById(WINS[name][0]);
+    if (el.classList.contains("hidden")) return;
+    const b = document.createElement("button");
+    b.className = "task-btn" + (el.classList.contains("focused") ? " active" : "");
+    b.textContent = WINS[name][1];
+    b.onclick = () => { if (el.classList.contains("focused")) { el.classList.add("hidden"); renderTaskbar(); } else openWin(name); };
+    bar.appendChild(b);
+  });
+}
+$$(".win").forEach(w => w.addEventListener("mousedown", () => {
+  w.style.zIndex = ++zTop; $$(".win").forEach(x => x.classList.remove("focused")); w.classList.add("focused"); renderTaskbar();
+}));
+$$("[data-drag]").forEach(bar => {
+  bar.addEventListener("mousedown", e => {
+    if (e.target.tagName === "BUTTON") return;
+    const win = document.getElementById(bar.dataset.drag);
+    const r = win.getBoundingClientRect(); const dx = e.clientX - r.left, dy = e.clientY - r.top;
+    function mv(ev) { win.style.left = Math.max(-40, Math.min(innerWidth - 80, ev.clientX - dx)) + "px"; win.style.top = Math.max(0, Math.min(innerHeight - 60, ev.clientY - dy)) + "px"; }
+    function up() { removeEventListener("mousemove", mv); removeEventListener("mouseup", up); }
+    addEventListener("mousemove", mv); addEventListener("mouseup", up);
+  });
+});
+$$("[data-min]").forEach(b => b.onclick = () => { document.getElementById(b.dataset.min).classList.add("hidden"); renderTaskbar(); });
+$$("[data-close]").forEach(b => b.onclick = () => { document.getElementById(b.dataset.close).classList.add("hidden"); renderTaskbar(); });
+$$("[data-open]").forEach(el => el.addEventListener("click", () => { $("#start-menu").style.display = "none"; openWin(el.dataset.open); }));
+$("#start-btn").onclick = () => { const m = $("#start-menu"); m.style.display = m.style.display === "block" ? "none" : "block"; };
+$("#start-reset").onclick = () => { if (confirm("Reset Case 1? This clears your visited pages, notes, pins and report. The slice restarts from the case email.")) { localStorage.removeItem(LS_KEY); location.reload(); } };
+function tickClock() { const d = new Date(); $("#tray-clock").textContent = String(d.getHours()).padStart(2, "0") + ":" + String(d.getMinutes()).padStart(2, "0"); }
+setInterval(tickClock, 15000); tickClock();
+
+/* ================= browser ================= */
+let hist = [], histIdx = -1, currentId = null;
+function stripHtml(h) { const d = document.createElement("div"); d.innerHTML = h; return d.textContent || ""; }
+function encounterPage(p) {
+  (p.people || []).forEach(person => { if (!state.enc[person]) state.enc[person] = Date.now(); });
+  Object.keys(EVIDENCE).forEach(k => { if (EVIDENCE[k].unlockPage === p.id && !state.ev[k]) state.ev[k] = Date.now(); });
+}
+function nav(id, push = true) {
+  const p = byId(id); if (!p) return;
+  const isNew = !state.visited[id];
+  if (isNew) { state.visited[id] = Date.now(); state.order.push(id); state.idle = 0; encounterPage(p); save(); }
+  if (push) { hist = hist.slice(0, histIdx + 1); hist.push(id); histIdx = hist.length - 1; }
+  currentId = id;
+  $("#assist-panel").style.display = "none";
+  $("#addr").textContent = "somnius://" + id;
+  $("#browser-view").innerHTML = p.body;
+  $("#page-meta").textContent = p.title + " · by " + p.author + " · " + p.zone + " · tags: " + p.tags.join(", ");
+  $("#btn-bookmark").textContent = state.bookmarks[id] ? "★ Bookmarked" : "☆ Bookmark";
+  if (state.resolved) {} // no-op guard
+  if (document.getElementById("win-casefile").classList.contains("hidden") === false) renderCaseFile();
+}
+function navSynthetic(title, html) {
+  currentId = null;
+  $("#addr").textContent = "somnius://search";
+  $("#browser-view").innerHTML = html;
+  $("#page-meta").textContent = title;
+}
+$("#browser-view").addEventListener("click", e => {
+  const a = e.target.closest("a[data-page]");
+  if (a) { e.preventDefault(); nav(a.dataset.page); return; }
+  const t = e.target.closest(".tune-btn");
+  if (t) { e.preventDefault(); playTune(t.dataset.tune); }
+});
+$("#btn-back").onclick = () => { if (histIdx > 0) { histIdx--; nav(hist[histIdx], false); } };
+$("#btn-fwd").onclick = () => { if (histIdx < hist.length - 1) { histIdx++; nav(hist[histIdx], false); } };
+$("#btn-bookmark").onclick = () => { if (!currentId) return; state.bookmarks[currentId] = !state.bookmarks[currentId]; save(); nav(currentId, false); };
+$("#btn-pin").onclick = () => {
+  if (!currentId) return;
+  const p = byId(currentId);
+  if (!state.pins.find(x => x.id === currentId)) { state.pins.push({ id: currentId, title: p.title }); save(); toast("📌 Pinned <b>" + esc(p.title) + "</b> to your Notepad."); renderNotepad(); }
+  else toast("Already pinned.");
+};
+function doSearch() {
+  const q = $("#search-input").value.trim().toLowerCase();
+  if (!q) return;
+  const hits = PAGES.filter(p => !p.hidden && (p.title + " " + p.author + " " + p.tags.join(" ") + " " + stripHtml(p.body)).toLowerCase().includes(q));
+  let html = `<div class="pg plain"><h1>Somnius Search — “${esc(q)}”</h1>`;
+  if (!hits.length) html += `<p>No pages match. The directory only lists public pages — try the <b>Directory</b>, or follow links and webrings. Unlisted pages never show up in search.</p>`;
+  else hits.forEach(p => {
+    const txt = stripHtml(p.body).replace(/\s+/g, " ").slice(0, 160);
+    html += `<p><a href="#" data-page="${p.id}"><b>${esc(p.title)}</b></a> <span class="tiny">by ${esc(p.author)} · ${esc(p.zone)}</span><br><span class="tiny">${esc(txt)}…</span></p>`;
+  });
+  html += `<p class="tiny">Search covers public pages only. ${PAGES.filter(p => p.hidden).length} unlisted pages exist on Somnius and will never appear here — somebody has to link you to them.</p></div>`;
+  navSynthetic("Search results", html);
+}
+$("#btn-search").onclick = doSearch;
+$("#search-input").addEventListener("keydown", e => { if (e.key === "Enter") doSearch(); });
+$("#btn-dir").onclick = () => {
+  const cats = {};
+  PAGES.filter(p => !p.hidden).forEach(p => { (cats[p.dir] = cats[p.dir] || []).push(p); });
+  let html = `<div class="pg plain"><h1>📁 Goodtime Valley Directory</h1><p class="tiny">Public pages only. Unlisted pages are not in the directory — that's the point of a webring.</p>`;
+  Object.keys(cats).sort().forEach(c => {
+    html += `<h2>${esc(c)}</h2><ul>` + cats[c].map(p => `<li><a href="#" data-page="${p.id}">${esc(p.title)}</a> <span class="tiny">by ${esc(p.author)}</span></li>`).join("") + `</ul>`;
+  });
+  html += `</div>`;
+  navSynthetic("Directory", html);
+};
+$("#btn-hist").onclick = () => {
+  let html = `<div class="pg plain"><h1>🕘 History</h1>`;
+  if (!state.order.length) html += `<p>You haven't visited any pages yet. The case email is a good place to start.</p>`;
+  else html += `<ol>` + state.order.map(id => { const p = byId(id); return `<li><a href="#" data-page="${id}">${esc(p.title)}</a> <span class="tiny">by ${esc(p.author)}</span></li>`; }).join("") + `</ol>`;
+  html += `<p class="tiny">Bookmarks: ` + (Object.keys(state.bookmarks).filter(k => state.bookmarks[k]).map(id => `<a href="#" data-page="${id}">${esc(byId(id).title)}</a>`).join(", ") || "none yet") + `</p></div>`;
+  navSynthetic("History", html);
+};
+function showAssist(pageId) {
+  const p = byId(pageId); if (!p) return;
+  const panel = $("#assist-panel");
+  panel.style.display = "block";
+  panel.innerHTML = `<b>Somnius Search Assist — related results:</b> you haven't visited this yet, and it matches this case — <a href="#" data-page="${p.id}">${esc(p.title)}</a> <span style="color:#666">by ${esc(p.author)}</span>`;
+  panel.querySelector("a").onclick = e => { e.preventDefault(); nav(p.id); };
+}
+
+/* ================= mail ================= */
+function allMail() {
+  const list = window.SLEEPWALK_MAIL.slice();
+  if (state.mail.includes("m-followup")) list.push(window.SLEEPWALK_FOLLOWUP);
+  return list;
+}
+function renderMail() {
+  const list = $("#mail-list"); list.innerHTML = "";
+  allMail().forEach(m => {
+    const d = document.createElement("div");
+    d.className = "mail-item" + (state.read[m.id] ? "" : " unread");
+    d.innerHTML = `<span class="mdate">${esc(m.date)}</span><b>${esc(m.from)}</b> — ${esc(m.subject)}`;
+    d.onclick = () => { state.read[m.id] = true; save(); $("#mail-read").textContent = m.from + " — " + m.subject + "\n" + m.date + "\n\n" + m.body; renderMail(); updateMailBadge(); };
+    list.appendChild(d);
+  });
+  updateMailBadge();
+}
+function updateMailBadge() {
+  const unread = allMail().filter(m => !state.read[m.id]).length;
+  const b = $("#mail-badge");
+  b.style.display = unread ? "block" : "none"; b.textContent = unread;
+}
+
+/* ================= notepad ================= */
+function renderNotepad() {
+  const ta = $("#notes");
+  if (document.activeElement !== ta) ta.value = state.notes || "";
+  const pins = $("#pins");
+  pins.innerHTML = state.pins.length ? state.pins.map(pin => `<div class="pin">📌 <a href="#" data-pin="${pin.id}">${esc(pin.title)}</a></div>`).join("") : `<i>Nothing pinned yet. Use “📌 Pin to Notepad” in the browser.</i>`;
+  pins.querySelectorAll("[data-pin]").forEach(a => a.onclick = e => { e.preventDefault(); openWin("browser"); nav(a.dataset.pin); });
+}
+$("#notes").addEventListener("input", e => { state.notes = e.target.value; save(); });
+
+/* ================= tune player (WebAudio music box) ================= */
+let audioCtx = null, tuneTimer = null;
+const MELODY = [880, 1318.5, 1046.5, 880, 784, 659.3, 587.3, 659.3, 523.3, 659.3, 784, 987.8, 880, 784, 659.3, 587.3];
+const BASS = [220, 220, 174.6, 220];
+function playTune(which) {
+  try {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtx.state === "suspended") audioCtx.resume();
+    if (tuneTimer) { clearTimeout(tuneTimer); tuneTimer = null; }
+    const t0 = audioCtx.currentTime + 0.05;
+    MELODY.forEach((f, i) => {
+      const t = t0 + i * 0.42;
+      const o = audioCtx.createOscillator(), o2 = audioCtx.createOscillator(), g = audioCtx.createGain();
+      o.type = "sine"; o.frequency.value = f; o2.type = "sine"; o2.frequency.value = f * 3;
+      const g2 = audioCtx.createGain(); g2.gain.value = 0.12;
+      o.connect(g); o2.connect(g2); g2.connect(g); g.connect(audioCtx.destination);
+      g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.22, t + 0.02);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + 0.9);
+      o.start(t); o2.start(t); o.stop(t + 1); o2.stop(t + 1);
+      if (i % 4 === 0) {
+        const b = audioCtx.createOscillator(), bg = audioCtx.createGain();
+        b.type = "triangle"; b.frequency.value = BASS[(i / 4) | 0];
+        b.connect(bg); bg.connect(audioCtx.destination);
+        bg.gain.setValueAtTime(0.0001, t); bg.gain.exponentialRampToValueAtTime(0.07, t + 0.05);
+        bg.gain.exponentialRampToValueAtTime(0.0001, t + 1.4);
+        b.start(t); b.stop(t + 1.5);
+      }
+    });
+    $$(".tune-state").forEach(s => s.textContent = "♪ playing… fingerprint QR-7712");
+    tuneTimer = setTimeout(() => {
+      $$(".tune-state").forEach(s => s.textContent = "♪ played — fingerprint QR-7712. Same ID on both uploads.");
+    }, MELODY.length * 420 + 600);
+  } catch (e) { toast("Audio is blocked in this browser — but the metadata is the evidence: both uploads share audio ID QR-7712."); }
+}
+
+/* ================= report (structured slots, no free text) ================= */
+const DISTRACTORS = {
+  "poem": { label: "Halberd's poem — proves he's obsessed, not who she is", unlockPage: "halberd-poetry" },
+  "modlog": { label: "The Mod Log — proves the removal broke procedure, not who she is", unlockPage: "mod-log" },
+  "eulogy": { label: "The eulogy edit — proves someone saw her, not where she is", unlockPage: "eulogy" }
+};
+function encounteredPeople() { return Object.keys(state.enc).sort((a, b) => state.enc[a] - state.enc[b]); }
+function unlockedEvidenceOptions() {
+  const opts = [];
+  Object.keys(EVIDENCE).forEach(k => { if (state.ev[k]) opts.push({ key: k, label: EVIDENCE[k].label }); });
+  Object.keys(DISTRACTORS).forEach(k => { if (state.visited[DISTRACTORS[k].unlockPage]) opts.push({ key: k, label: DISTRACTORS[k].label }); });
+  return opts;
+}
+function renderReport() {
+  const body = $("#report-body");
+  if (state.resolved) {
+    const mins = Math.max(1, Math.round((Date.now() - state.started) / 60000));
+    body.innerHTML = `<h2>Report filed — <span class="stamp">CASE CLOSED</span></h2>
+    <p>You told marbles_4ever the truth: Dani asked for the memorial to come down. She is alive, living quietly as quietrooms, hiding from Halberd_77. The tune proved it. The stars proved it. Her friend's slip proved it.</p>
+    <p>She doesn't reply for a day. Then: <i>“thank you. i don't know if i'm angry or relieved. i think both.”</i></p>
+    <p>Whether telling her was a kindness is left alone. That's the job.</p>
+    <p><b>Stats:</b> ${state.order.length}/20 pages visited · ${Object.keys(state.ev).length}/3 identity evidence found · ${state.hints}/3 hints used · ${state.attempts} report attempt(s) · ~${mins} min on the case.</p>
+    <p><button onclick="document.getElementById('start-reset').click()">↺ Play it again (reset case)</button></p>
+    <div id="epilogue" style="display:block"></div>`;
+    return;
+  }
+  const people = encounteredPeople();
+  const evOpts = unlockedEvidenceOptions();
+  body.innerHTML = `<h2>File Report — Case 1: The Quiet Room</h2>
+  <p>Report your findings to marbles_4ever. Pick from people and pages you have <b>actually encountered</b> — the report only lists what you've seen. You can retry as many times as you like; partial credit tells you which slot is wrong, never the answer.</p>
+  <div class="slot"><b>1. Who requested the removal?</b>
+    ${people.length ? people.map(p => `<label><input type="radio" name="s1" value="${p}"> ${esc(PEOPLE[p] || p)}</label>`).join("") : `<i>You haven't met anyone yet. Visit some pages first.</i>`}
+    <div class="verdict" id="v1"></div></div>
+  <div class="slot"><b>2. What proves quietrooms is Dani?</b>
+    ${evOpts.length ? evOpts.map(o => `<label><input type="radio" name="s2" value="${o.key}"> ${esc(o.label)}</label>`).join("") : `<i>No identity evidence found yet. Keep looking — something has to link the two handles.</i>`}
+    <div class="verdict" id="v2"></div></div>
+  <div class="slot"><b>3. Where is she now?</b>
+    ${people.length ? people.map(p => `<label><input type="radio" name="s3" value="${p}"> ${esc(p)}</label>`).join("") : `<i>You haven't met anyone yet.</i>`}
+    <div class="verdict" id="v3"></div></div>
+  <button id="btn-submit" style="padding:6px 18px;font-weight:bold">Submit report</button>
+  <span id="report-msg" style="margin-left:8px"></span>
+  <div id="epilogue"></div>`;
+  $("#btn-submit").onclick = () => {
+    const s1 = (document.querySelector('input[name=s1]:checked') || {}).value;
+    const s2 = (document.querySelector('input[name=s2]:checked') || {}).value;
+    const s3 = (document.querySelector('input[name=s3]:checked') || {}).value;
+    if (!s1 || !s2 || !s3) { $("#report-msg").textContent = "Fill in all three slots first."; return; }
+    state.attempts++; save();
+    const ok1 = ["angelfeathers", "quietrooms"].includes(s1);
+    const ok2 = ["tune", "design", "guestbook-slip"].includes(s2);
+    const ok3 = s3 === "quietrooms";
+    const v1 = $("#v1"), v2 = $("#v2"), v3 = $("#v3");
+    v1.className = "verdict " + (ok1 ? "ok" : "bad");
+    v1.textContent = ok1 ? "✓ Correct." : "✗ Not quite. Who ASKED for the removal — not who carried it out? The 404 and the Mod Log disagree, and one of them is the cover story.";
+    v2.className = "verdict " + (ok2 ? "ok" : "bad");
+    v2.textContent = ok2 ? "✓ Correct." : "✗ That doesn't prove she's the same person. What links the two handles — same song, same signature, same slip?";
+    v3.className = "verdict " + (ok3 ? "ok" : "bad");
+    v3.textContent = ok3 ? "✓ Correct." : "✗ She's not there anymore. Where did the webring lead?";
+    if (ok1 && ok2 && ok3) {
+      state.resolved = true; save();
+      $("#report-msg").textContent = "";
+      setTimeout(renderReport, 400);
+      toast("✅ <b>Case closed.</b> The report went through — read the epilogue.");
+    } else {
+      $("#report-msg").textContent = "Partial credit: " + [ok1, ok2, ok3].filter(Boolean).length + "/3 slots right. Try again.";
+    }
+    renderCaseFile();
+  };
+}
+
+/* ================= hints: 3 diegetic tiers on the no-new-page timer ================= */
+const HINT_PRIORITY = ["webring-hub", "cached-guestbook", "tune", "quietrooms-home", "memorial-directory", "possum-personal"];
+const HINT_SECONDS = [60, 150, 240]; /* slice thresholds; the real game would use longer ones */
+function firstUnvisitedPriority() { return HINT_PRIORITY.find(id => !state.visited[id]) || "quietrooms-home"; }
+function fireHint(tier) {
+  if (tier === 1) {
+    if (!state.mail.includes("m-followup")) state.mail.push("m-followup");
+    state.hintLog.push("Tier 1 — client follow-up email (no new page for 60s): “did you try her guestbook?”");
+    renderMail(); updateMailBadge();
+    toast("✉️ New mail from <b>marbles_4ever</b> — she remembered something.");
+  } else if (tier === 2) {
+    const target = firstUnvisitedPriority();
+    showAssist(target); openWin("browser");
+    state.hintLog.push("Tier 2 — Search Assist surfaced an unvisited page: " + byId(target).title);
+    toast("🔍 Somnius Search Assist surfaced a related result in the browser.");
+  } else if (tier === 3) {
+    const target = firstUnvisitedPriority();
+    if (!state.pins.find(x => x.id === target)) state.pins.push({ id: target, title: byId(target).title + " (pinned by Somnius Assist)" });
+    state.hintLog.push("Tier 3 — Notepad auto-pinned: " + byId(target).title);
+    renderNotepad();
+    toast("📌 Somnius Assist pinned a page to your Notepad.");
+  }
+  state.hints = tier; save(); renderCaseFile();
+}
+setInterval(() => {
+  if (state.resolved || document.hidden) return;
+  state.idle++;
+  const clock = document.getElementById("hint-clock");
+  if (clock) clock.textContent = "No new pages for " + Math.floor(state.idle / 60) + ":" + String(state.idle % 60).padStart(2, "0");
+  if (state.hints < 1 && state.idle >= HINT_SECONDS[0]) fireHint(1);
+  else if (state.hints < 2 && state.idle >= HINT_SECONDS[1]) fireHint(2);
+  else if (state.hints < 3 && state.idle >= HINT_SECONDS[2]) fireHint(3);
+}, 1000);
+
+/* ================= case file ================= */
+function renderCaseFile() {
+  const el = $("#casefile-body"); if (!el) return;
+  const visited = state.order.length, evCount = Object.keys(state.ev).length, ppl = Object.keys(state.enc).length;
+  const totals = { stub: 0, standard: 0, hub: 0 };
+  PAGES.forEach(p => totals[p.type]++);
+  const totalMin = PAGES.reduce((a, p) => a + p.costMin, 0);
+  const mins = Math.max(1, Math.round((Date.now() - state.started) / 60000));
+  el.innerHTML = `<h2>Case 1 — “The Quiet Room” ${state.resolved ? '<span class="stamp">CASE CLOSED</span>' : ""}</h2>
+  <p><b>Client:</b> marbles_4ever, 19. <b>Subject:</b> memorial page <b>angelfeathers</b> (her sister Dani) vanished from Goodtime Valley. Find out who took it down.</p>
+  <p><b>Pages visited:</b> ${visited}/20</p><div class="meter"><div style="width:${visited / 20 * 100}%"></div></div>
+  <p><b>Identity evidence found:</b> ${evCount}/3 &nbsp;·&nbsp; <b>People met:</b> ${ppl}/6 &nbsp;·&nbsp; <b>Hints used:</b> ${state.hints}/3 &nbsp;·&nbsp; <b>Report attempts:</b> ${state.attempts} &nbsp;·&nbsp; <b>Time on case:</b> ~${mins} min</p>
+  <p><b>Hint clock:</b> <span id="hint-clock">No new pages for 0:00</span> <span style="color:#666">(Tier 1 at 1:00, Tier 2 at 2:30, Tier 3 at 4:00 of no new pages — slice thresholds)</span></p>
+  ${state.hintLog.length ? `<p><b>Hints delivered:</b><br>${state.hintLog.map(esc).join("<br>")}</p>` : ""}
+  <p><button onclick="openWin('report')">🔍 File Report</button> <button onclick="openWin('browser')">🌐 Back to the browser</button></p>
+  <h3>What this slice has to prove</h3>
+  <ol><li>Does the tune-as-evidence mechanic read without a hint?</li>
+  <li>Do players find the webring without Search Assist?</li>
+  <li>What did 20 pages cost — the real scope document?</li></ol>
+  <h3>Page-cost ledger (estimates from the design doc)</h3>
+  <table class="ledger"><tr><th>Page</th><th>Type</th><th>Est.</th></tr>
+  ${PAGES.map(p => `<tr><td>${esc(p.title)}</td><td>${p.type}</td><td>${p.costMin} min</td></tr>`).join("")}
+  <tr><td><b>Total — 20 pages</b></td><td><b>${totals.stub} stubs · ${totals.standard} standard · ${totals.hub} hubs</b></td><td><b>${totalMin} min (${(totalMin / 60).toFixed(1)} hrs)</b></td></tr></table>
+  <p><b>Gate check:</b> the doc says if Case 1 costs 25+ hours, the target drops from 300 pages to 200. This estimate lands at <b>${(totalMin / 60).toFixed(1)} hours — the gate trips on estimate alone</b>. The number that matters is the measured one: how long the 20 pages actually took to write. At the estimated rate, 300 pages is ~${Math.round(totalMin / 20 * 300 / 60)} writing hours; 200 pages is ~${Math.round(totalMin / 20 * 200 / 60)}.</p>
+  <p style="color:#666">How to play: read the case email, search and browse Goodtime Valley, follow links and webrings. Unlisted pages never appear in search or the directory — somebody has to link you to them. When you know the truth, File Report.</p>`;
+}
+
+/* ================= boot ================= */
+renderMail(); renderNotepad(); updateMailBadge();
+(function boot() {
+  const home = `<div class="pg plain"><h1>Welcome to Somnius</h1>
+  <p><i>the internet you visit while you sleep. goodtime valley node. november 2004.</i></p>
+  <p>You have <b>1 unread case email</b>. Start there — or start digging.</p>
+  <p>📁 <a href="#" data-page="memorial-404">angelfeathers — the missing memorial page</a><br>
+  📁 <a href="#" data-page="fanclub-hub">The Flip-Flop Fan Club</a><br>
+  📁 <a href="#" data-page="zone-rules">Goodtime Valley Zone Rules</a></p>
+  <p class="tiny">Tip: use the Directory button for public pages, Search for keywords, and follow links — the webrings go further than the directory does.</p></div>`;
+  if (state.order.length) { const last = state.order[state.order.length - 1]; hist = state.order.slice(); histIdx = hist.length - 1; nav(last, false); }
+  else { navSynthetic("Somnius Home", home); hist = []; histIdx = -1; }
+  openWin("browser"); renderTaskbar();
+  if (!state.seenIntro) {
+    const intro = $("#intro"); intro.style.display = "flex";
+    $("#intro-go").onclick = () => { state.seenIntro = true; save(); intro.style.display = "none"; openWin("mail"); };
+  }
+})();
+</script>
+</body>
+</html>
