@@ -32,6 +32,24 @@ Live at **https://xerohour.github.io/sleepwalk/?case=2**
   In the full game Case 2 unlocks by closing Case 1 — in the slice both
   cases are open for playtesting. `?case=2` opens straight into Case 2.
 
+## Vertical slice — Case 3: "The 3y3 of the Storm"
+
+Live at **https://xerohour.github.io/sleepwalk/?case=3**
+
+- 1 new zone (gamerZone), 1 case, 20 pages
+- Client: `pixelpete_99`, 14. His older brother `DoomDealer` was banned
+  from gamerZone for uploading a cracked game. Pete thinks he was framed.
+  He is wrong about that — and right about something else.
+- New tests: a tool-gated case (`3y3.exe`, a decryptor the player
+  downloads from a fake banner ad), a two-layer decryption (one file needs
+  the audio key — Skullcrusher's theme, fingerprint QR-9931), a client who
+  is wrong, and an ethical choice at the end of the report (four actions,
+  four epilogues — no right answer, only the one you can live with).
+- The Null Sector webring is the hidden ring: black pages, green
+  monospace, ASCII eye. Entry is the eye icon on DoomDealer's locked page
+  or the banner ad on The Cheat Vault. `?case=3` opens straight into
+  Case 3.
+
 ## How it works
 
 - `index.html` — the Somnius OS: draggable windows (Browser, Mail, Notepad,
@@ -41,11 +59,14 @@ Live at **https://xerohour.github.io/sleepwalk/?case=2**
   automated browsers can use it too). `?reset=1` on the URL wipes the save
   before it loads, for a guaranteed fresh playtest. `?case=2` opens
   straight into Case 2.
-- `pages.js` / `pages2.js` — the page CMS. Every page is a data object:
+- `pages.js` / `pages2.js` / `pages3.js` — the page CMS. Every page is a data object:
   `id, title, author, zone, tags, type (stub|standard|hub), costMin,
   hidden, dir, people, links, body`. Hidden pages are unlisted: reachable
   only via links, never via search or the directory. Each case also
   registers its people, identity evidence, and mail in the same file.
+  Case 3 additionally registers `SLEEPWALK_FILES3` — the encrypted .nfo
+  files 3y3.exe decrypts (each maps to one evidence item; one needs the
+  audio key).
 
 ## Design decisions (locked 2026-11-11)
 
