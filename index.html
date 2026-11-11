@@ -213,6 +213,8 @@ function freshState() {
     started: Date.now() };
 }
 let state = freshState();
+/* ?reset=1 wipes the save before it loads — the clean-state escape hatch for playtesting. */
+try { if (new URLSearchParams(location.search).has("reset")) localStorage.removeItem(LS_KEY); } catch (e) {}
 try { const raw = localStorage.getItem(LS_KEY); if (raw) state = Object.assign(freshState(), JSON.parse(raw)); } catch (e) {}
 function save() { try { localStorage.setItem(LS_KEY, JSON.stringify(state)); } catch (e) {} }
 const $ = s => document.querySelector(s);
@@ -264,7 +266,20 @@ $$("[data-min]").forEach(b => b.onclick = () => { document.getElementById(b.data
 $$("[data-close]").forEach(b => b.onclick = () => { document.getElementById(b.dataset.close).classList.add("hidden"); renderTaskbar(); });
 $$("[data-open]").forEach(el => el.addEventListener("click", () => { $("#start-menu").style.display = "none"; openWin(el.dataset.open); }));
 $("#start-btn").onclick = () => { const m = $("#start-menu"); m.style.display = m.style.display === "block" ? "none" : "block"; };
-$("#start-reset").onclick = () => { if (confirm("Reset Case 1? This clears your visited pages, notes, pins and report. The slice restarts from the case email.")) { localStorage.removeItem(LS_KEY); location.reload(); } };
+/* Two-step reset: native confirm() dialogs get auto-dismissed by automated
+   browsers, so the reset arms on first click and fires on a second click within 5s. */
+let resetArmed = false, resetArmTimer = null;
+function doReset() {
+  if (!resetArmed) {
+    resetArmed = true;
+    toast("⚠️ Click Reset case again within 5 seconds to wipe your save and restart Case 1.");
+    resetArmTimer = setTimeout(() => { resetArmed = false; }, 5000);
+    return;
+  }
+  clearTimeout(resetArmTimer);
+  localStorage.removeItem(LS_KEY); location.reload();
+}
+$("#start-reset").onclick = doReset;
 function tickClock() { const d = new Date(); $("#tray-clock").textContent = String(d.getHours()).padStart(2, "0") + ":" + String(d.getMinutes()).padStart(2, "0"); }
 setInterval(tickClock, 15000); tickClock();
 
@@ -440,7 +455,7 @@ function renderReport() {
     <p>She doesn't reply for a day. Then: <i>“thank you. i don't know if i'm angry or relieved. i think both.”</i></p>
     <p>Whether telling her was a kindness is left alone. That's the job.</p>
     <p><b>Stats:</b> ${state.order.length}/20 pages visited · ${Object.keys(state.ev).length}/3 identity evidence found · ${state.hints}/3 hints used · ${state.attempts} report attempt(s) · ~${mins} min on the case.</p>
-    <p><button onclick="document.getElementById('start-reset').click()">↺ Play it again (reset case)</button></p>
+    <p><button onclick="doReset()">↺ Play it again (reset case)</button></p>
     <div id="epilogue" style="display:block"></div>`;
     return;
   }
